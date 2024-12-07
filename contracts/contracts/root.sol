@@ -34,11 +34,10 @@ contract BitMix {
 
     constructor(
         address _tokenAddr,
-        address _verifierAddr,
         bytes32 _bitmixProgramVKey
     ) {
         wbtcToken = IERC20(_tokenAddr);
-        verifier = new BitMixVerifier(_verifierAddr, _bitmixProgramVKey);
+        verifier = new BitMixVerifier( _bitmixProgramVKey);
     }
 
     function deposit(
@@ -121,3 +120,5 @@ contract BitMix {
         emit OrderValidated(orderID);
     }
 }
+dbff552efd5921eb3cb0c9e8ef7297b6e186fc8ecfee7c4bf67a405a3fadca8c
+d90c2ed0346e85e3fc03a88ed8f205ed6d8ffdad65da84191b6b5936e1869762

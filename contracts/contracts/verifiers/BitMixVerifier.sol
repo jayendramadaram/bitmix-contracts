@@ -4,6 +4,8 @@ pragma solidity ^0.8.20;
 import {ISP1Verifier} from "./ISP1Verifier.sol";
 import {IBitcoinLightClient} from "../interfaces/IBitcoinLightClient.sol";
 
+import {Groth16Verifier} from "./Groth16Verifier.sol";
+
 struct PublicValuesStruct {
     // set to 1 block right now for simplicity but the original plan was to prove
     // inclusivity in a merkle tree which needs changes to how the light client is storing the block hashes
@@ -29,14 +31,14 @@ contract BitMixVerifier {
     ///      SP1VerifierGateway which can be used to verify proofs for any version of SP1.
     ///      For the list of supported verifiers on each chain, see:
     ///      https://github.com/succinctlabs/sp1-contracts/tree/main/contracts/deployments
-    address public verifier;
+    Groth16Verifier public verifier;
     address public citraLightClient;
 
     /// @notice The verification key for the bitmix program.
     bytes32 public bitmixProgramVKey;
 
-    constructor(address _verifier, bytes32 _bitmixProgramVKey) {
-        verifier = _verifier;
+    constructor(bytes32 _bitmixProgramVKey) {
+        verifier = new Groth16Verifier();
         bitmixProgramVKey = _bitmixProgramVKey;
     }
 
@@ -45,11 +47,7 @@ contract BitMixVerifier {
         bytes calldata _proofBytes,
         uint256[1] calldata blockNumbers
     ) public view returns (ScriptInputs memory inps) {
-        ISP1Verifier(verifier).verifyProof(
-            bitmixProgramVKey,
-            _publicValues,
-            _proofBytes
-        );
+        (verifier).verifyProof(bitmixProgramVKey, _publicValues, _proofBytes);
         PublicValuesStruct memory publicValues = abi.decode(
             _publicValues,
             (PublicValuesStruct)
@@ -59,7 +57,9 @@ contract BitMixVerifier {
                 blockNumbers[0]
             ) ==
                 convertToBytes32(
-                    convertToBigEndian(abi.encodePacked(publicValues.block_hashes[0]))
+                    convertToBigEndian(
+                        abi.encodePacked(publicValues.block_hashes[0])
+                    )
                 ),
             "Block doesnot exist"
         );
